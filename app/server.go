@@ -34,6 +34,16 @@ type DBConfig struct {
 func (server *Server) Initialize(appConfig AppConfig, dbConfig DBConfig) {
 	fmt.Println("Welcome to " + appConfig.AppName)
 
+	server.initializeDB(dbConfig)
+	server.initializeRoutes()
+}
+
+func (server *Server) Run(addr string) {
+	fmt.Printf("Listening to port %s", addr)
+	log.Fatal(http.ListenAndServe(addr, server.Router))
+}
+
+func (server *Server) initializeDB(dbConfig DBConfig) {
 	var err error
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Jakarta", dbConfig.DBHost, dbConfig.DBUser, dbConfig.DBPassword, dbConfig.DBName, dbConfig.DBPort)
 	server.DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
@@ -41,14 +51,6 @@ func (server *Server) Initialize(appConfig AppConfig, dbConfig DBConfig) {
 	if err != nil {
 		panic("Failed on connecting to the database server")
 	}
-
-	server.Router = mux.NewRouter()
-	server.initializeRoutes()
-}
-
-func (server *Server) Run(addr string) {
-	fmt.Printf("Listening to port %s", addr)
-	log.Fatal(http.ListenAndServe(addr, server.Router))
 }
 
 func getEnv(key, fallback string) string {
