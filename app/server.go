@@ -31,11 +31,11 @@ type DBConfig struct {
 	DBPort     string
 }
 
-func (server *Server) Initialize(appConfig AppConfig) {
+func (server *Server) Initialize(appConfig AppConfig, dbConfig DBConfig) {
 	fmt.Println("Welcome to " + appConfig.AppName)
 
 	var err error
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Jakarta", "localhost", "jasmineerina", "password", "tokoku_db", "5432")
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Jakarta", dbConfig.DBHost, dbConfig.DBUser, dbConfig.DBPassword, dbConfig.DBName, dbConfig.DBPort)
 	server.DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	if err != nil {
@@ -62,6 +62,7 @@ func getEnv(key, fallback string) string {
 func Run() {
 	var server = Server{}
 	var appConfig = AppConfig{}
+	var dbConfig = DBConfig{}
 
 	err := godotenv.Load()
 	if err != nil {
@@ -72,6 +73,12 @@ func Run() {
 	appConfig.AppEnv = getEnv("APP_ENV", "development")
 	appConfig.AppPort = getEnv("APP_PORT", "9000")
 
-	server.Initialize(appConfig)
+	dbConfig.DBHost = getEnv("DB_HOST", "localhost")
+	dbConfig.DBUser = getEnv("DB_USER", "user")
+	dbConfig.DBPassword = getEnv("DB_PASSWORD", "password")
+	dbConfig.DBName = getEnv("DB_NAME", "dbname")
+	dbConfig.DBPort = getEnv("DB_PORT", "5432")
+
+	server.Initialize(appConfig, dbConfig)
 	server.Run(":" + appConfig.AppPort)
 }
